@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compteur - 2 Personnes</title>
+    <title>Compteur MODI</title>
     <style>
         * {
             margin: 0;
@@ -153,6 +153,197 @@
             background: #ee5a5a;
         }
 
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-body label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .modal-body textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal-body textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-btn-cancel {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #d0d0d0;
+        }
+
+        .modal-btn-confirm {
+            background: #667eea;
+            color: white;
+        }
+
+        .modal-btn-confirm:hover {
+            background: #5568d3;
+        }
+
+        /* History section */
+        .history-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .history-header h2 {
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .btn-toggle-history {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.9em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-toggle-history:hover {
+            background: #5568d3;
+        }
+
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .history-item.person2 {
+            border-left-color: #f5576c;
+        }
+
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .history-item-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .history-item-date {
+            font-size: 0.85em;
+            color: #999;
+        }
+
+        .history-item-context {
+            color: #666;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        .history-empty {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-style: italic;
+        }
+
         @media (max-width: 768px) {
             .counters {
                 grid-template-columns: 1fr;
@@ -165,12 +356,22 @@
             h1 {
                 font-size: 2em;
             }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .history-header {
+                flex-direction: column;
+                gap: 15px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎯 Compteur - 2 Personnes</h1>
+        <h1>🎯 Compteur MODI</h1>
 
         <div class="counters">
             <div class="counter-box person1">
@@ -189,9 +390,40 @@
         <div class="reset-section">
             <button class="btn btn-reset" onclick="resetCounters()">🔄 Réinitialiser les compteurs</button>
         </div>
+
+        <div class="history-section">
+            <div class="history-header">
+                <h2>📜 Historique</h2>
+                <button class="btn-toggle-history" onclick="toggleHistory()">
+                    <span id="toggle-text">Afficher</span>
+                </button>
+            </div>
+            <div id="history-list" class="history-list" style="display: none;">
+                <div class="history-empty">Aucune entrée pour le moment</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour ajouter un contexte -->
+    <div id="contextModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                📝 Ajouter un contexte
+            </div>
+            <div class="modal-body">
+                <label for="contextInput">Pourquoi incrémentez-vous le compteur ? (optionnel)</label>
+                <textarea id="contextInput" placeholder="Ex: Atelier terminé, réunion effectuée, tâche accomplie..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Annuler</button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmIncrement()">Confirmer</button>
+            </div>
+        </div>
     </div>
 
     <script>
+        let currentPersonId = null;
+
         // Charger les compteurs au démarrage
         async function loadCounters() {
             try {
@@ -203,6 +435,63 @@
                 document.getElementById('name2').textContent = data.name2 || 'Personne 2';
             } catch (error) {
                 console.error('Erreur lors du chargement des compteurs:', error);
+            }
+        }
+
+        // Charger l'historique
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const history = await response.json();
+                displayHistory(history);
+            } catch (error) {
+                console.error('Erreur lors du chargement de l\'historique:', error);
+            }
+        }
+
+        // Afficher l'historique
+        function displayHistory(history) {
+            const historyList = document.getElementById('history-list');
+
+            if (!history || history.length === 0) {
+                historyList.innerHTML = '<div class="history-empty">Aucune entrée pour le moment</div>';
+                return;
+            }
+
+            historyList.innerHTML = history.map(entry => {
+                const date = new Date(entry.date);
+                const dateStr = date.toLocaleString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                return `
+                    <div class="history-item ${entry.person === 2 ? 'person2' : ''}">
+                        <div class="history-item-header">
+                            <span class="history-item-name">${entry.name}</span>
+                            <span class="history-item-date">${dateStr}</span>
+                        </div>
+                        ${entry.context ? `<div class="history-item-context">"${entry.context}"</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Toggle l'affichage de l'historique
+        function toggleHistory() {
+            const historyList = document.getElementById('history-list');
+            const toggleText = document.getElementById('toggle-text');
+
+            if (historyList.style.display === 'none') {
+                historyList.style.display = 'block';
+                toggleText.textContent = 'Masquer';
+                loadHistory();
+            } else {
+                historyList.style.display = 'none';
+                toggleText.textContent = 'Afficher';
             }
         }
 
@@ -258,30 +547,78 @@
             }
         }
 
-        // Incrémenter un compteur
-        async function incrementCounter(personId) {
+        // Ouvrir la modale pour incrémenter un compteur
+        function incrementCounter(personId) {
+            currentPersonId = personId;
+            const modal = document.getElementById('contextModal');
+            const contextInput = document.getElementById('contextInput');
+            contextInput.value = '';
+            modal.classList.add('active');
+            contextInput.focus();
+        }
+
+        // Fermer la modale
+        function closeModal() {
+            const modal = document.getElementById('contextModal');
+            modal.classList.remove('active');
+            currentPersonId = null;
+        }
+
+        // Confirmer l'incrémentation avec contexte
+        async function confirmIncrement() {
+            if (currentPersonId === null) return;
+
+            const context = document.getElementById('contextInput').value.trim();
+
             try {
                 const response = await fetch('/api/increment', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ person: personId })
+                    body: JSON.stringify({
+                        person: currentPersonId,
+                        context: context || null
+                    })
                 });
                 const data = await response.json();
-                document.getElementById(`counter${personId}`).textContent = data[`person${personId}`];
+                document.getElementById(`counter${currentPersonId}`).textContent = data[`person${currentPersonId}`];
 
                 // Animation de feedback
-                const counterElement = document.getElementById(`counter${personId}`);
+                const counterElement = document.getElementById(`counter${currentPersonId}`);
                 counterElement.style.transform = 'scale(1.2)';
                 setTimeout(() => {
                     counterElement.style.transform = 'scale(1)';
                 }, 200);
+
+                // Fermer la modale
+                closeModal();
+
+                // Recharger l'historique si affiché
+                const historyList = document.getElementById('history-list');
+                if (historyList.style.display !== 'none') {
+                    loadHistory();
+                }
             } catch (error) {
                 console.error('Erreur lors de l\'incrémentation:', error);
                 alert('Erreur lors de la mise à jour du compteur');
             }
         }
+
+        // Fermer la modale en cliquant en dehors
+        document.addEventListener('click', (e) => {
+            const modal = document.getElementById('contextModal');
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Soumettre avec la touche Entrée (si Ctrl est enfoncé)
+        document.getElementById('contextInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                confirmIncrement();
+            }
+        });
 
         // Réinitialiser les compteurs
         async function resetCounters() {

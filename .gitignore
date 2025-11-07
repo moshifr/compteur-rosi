@@ -1,5 +1,6 @@
 node_modules/
 counters.txt
+history.json
 npm-debug.log
 .DS_Store
 

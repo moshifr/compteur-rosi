@@ -5,6 +5,7 @@ const path = require('path');
 const app = express();
 const PORT = 3000;
 const COUNTER_FILE = path.join(__dirname, 'counters.txt');
+const HISTORY_FILE = path.join(__dirname, 'history.json');
 
 // Middleware
 app.use(express.json());
@@ -14,6 +15,13 @@ app.use(express.static(__dirname));
 function initCountersFile() {
     if (!fs.existsSync(COUNTER_FILE)) {
         fs.writeFileSync(COUNTER_FILE, '0,0,Personne 1,Personne 2', 'utf8');
+    }
+}
+
+// Initialiser le fichier d'historique s'il n'existe pas
+function initHistoryFile() {
+    if (!fs.existsSync(HISTORY_FILE)) {
+        fs.writeFileSync(HISTORY_FILE, '[]', 'utf8');
     }
 }
 
@@ -44,6 +52,47 @@ function writeCounters(person1, person2, name1 = 'Personne 1', name2 = 'Personne
     }
 }
 
+// Lire l'historique depuis le fichier
+function readHistory() {
+    try {
+        const data = fs.readFileSync(HISTORY_FILE, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Erreur lors de la lecture de l\'historique:', error);
+        return [];
+    }
+}
+
+// Écrire l'historique dans le fichier
+function writeHistory(history) {
+    try {
+        fs.writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2), 'utf8');
+        return true;
+    } catch (error) {
+        console.error('Erreur lors de l\'écriture de l\'historique:', error);
+        return false;
+    }
+}
+
+// Ajouter une entrée à l'historique
+function addHistoryEntry(person, name, context) {
+    const history = readHistory();
+    const entry = {
+        person: person,
+        name: name,
+        context: context || null,
+        date: new Date().toISOString()
+    };
+    history.unshift(entry); // Ajouter au début pour avoir les plus récents en premier
+
+    // Garder seulement les 100 dernières entrées
+    if (history.length > 100) {
+        history.splice(100);
+    }
+
+    return writeHistory(history);
+}
+
 // API Routes
 
 // Récupérer les compteurs actuels
@@ -54,7 +103,7 @@ app.get('/api/counters', (req, res) => {
 
 // Incrémenter un compteur
 app.post('/api/increment', (req, res) => {
-    const { person } = req.body;
+    const { person, context } = req.body;
 
     if (person !== 1 && person !== 2) {
         return res.status(400).json({ error: 'Personne invalide' });
@@ -68,7 +117,12 @@ app.post('/api/increment', (req, res) => {
         counters.person2++;
     }
 
+    // Sauvegarder les compteurs
     if (writeCounters(counters.person1, counters.person2, counters.name1, counters.name2)) {
+        // Ajouter l'entrée à l'historique
+        const personName = person === 1 ? counters.name1 : counters.name2;
+        addHistoryEntry(person, personName, context);
+
         res.json(counters);
     } else {
         res.status(500).json({ error: 'Erreur lors de la sauvegarde' });
@@ -112,8 +166,15 @@ app.post('/api/update-name', (req, res) => {
     }
 });
 
-// Initialiser le fichier au démarrage
+// Récupérer l'historique
+app.get('/api/history', (req, res) => {
+    const history = readHistory();
+    res.json(history);
+});
+
+// Initialiser les fichiers au démarrage
 initCountersFile();
+initHistoryFile();
 
 // Démarrer le serveur
 app.listen(PORT, () => {
