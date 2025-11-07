@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compteur - 2 Personnes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+        }
+
+        .counters {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .counter-box {
+            text-align: center;
+            padding: 30px;
+            border-radius: 15px;
+            transition: transform 0.2s;
+        }
+
+        .counter-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .counter-box.person1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .counter-box.person2 {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .person-name {
+            color: white;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .counter-value {
+            color: white;
+            font-size: 6em;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .person2 .btn {
+            color: #f5576c;
+        }
+
+        .reset-section {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+
+        .btn-reset {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.2em;
+        }
+
+        .btn-reset:hover {
+            background: #ee5a5a;
+        }
+
+        @media (max-width: 768px) {
+            .counters {
+                grid-template-columns: 1fr;
+            }
+
+            .counter-value {
+                font-size: 4em;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Compteur - 2 Personnes</h1>
+
+        <div class="counters">
+            <div class="counter-box person1">
+                <div class="person-name">Personne 1</div>
+                <div class="counter-value" id="counter1">0</div>
+                <button class="btn" onclick="incrementCounter(1)">➕ Ajouter</button>
+            </div>
+
+            <div class="counter-box person2">
+                <div class="person-name">Personne 2</div>
+                <div class="counter-value" id="counter2">0</div>
+                <button class="btn" onclick="incrementCounter(2)">➕ Ajouter</button>
+            </div>
+        </div>
+
+        <div class="reset-section">
+            <button class="btn btn-reset" onclick="resetCounters()">🔄 Réinitialiser les compteurs</button>
+        </div>
+    </div>
+
+    <script>
+        // Charger les compteurs au démarrage
+        async function loadCounters() {
+            try {
+                const response = await fetch('/api/counters');
+                const data = await response.json();
+                document.getElementById('counter1').textContent = data.person1;
+                document.getElementById('counter2').textContent = data.person2;
+            } catch (error) {
+                console.error('Erreur lors du chargement des compteurs:', error);
+            }
+        }
+
+        // Incrémenter un compteur
+        async function incrementCounter(personId) {
+            try {
+                const response = await fetch('/api/increment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ person: personId })
+                });
+                const data = await response.json();
+                document.getElementById(`counter${personId}`).textContent = data[`person${personId}`];
+
+                // Animation de feedback
+                const counterElement = document.getElementById(`counter${personId}`);
+                counterElement.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    counterElement.style.transform = 'scale(1)';
+                }, 200);
+            } catch (error) {
+                console.error('Erreur lors de l\'incrémentation:', error);
+                alert('Erreur lors de la mise à jour du compteur');
+            }
+        }
+
+        // Réinitialiser les compteurs
+        async function resetCounters() {
+            if (!confirm('Êtes-vous sûr de vouloir réinitialiser les compteurs ?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/reset', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                document.getElementById('counter1').textContent = data.person1;
+                document.getElementById('counter2').textContent = data.person2;
+            } catch (error) {
+                console.error('Erreur lors de la réinitialisation:', error);
+                alert('Erreur lors de la réinitialisation des compteurs');
+            }
+        }
+
+        // Charger les compteurs au démarrage
+        loadCounters();
+
+        // Style pour l'animation
+        document.querySelectorAll('.counter-value').forEach(el => {
+            el.style.transition = 'transform 0.2s ease';
+        });
+    </script>
+</body>
+</html>

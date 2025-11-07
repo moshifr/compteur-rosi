@@ -1,0 +1,23 @@
+{
+  "name": "compteur-rosi",
+  "version": "1.0.0",
+  "description": "Application de compteur pour 2 personnes avec stockage sur fichier .txt",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "counter",
+    "compteur",
+    "express"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
