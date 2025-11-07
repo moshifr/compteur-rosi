@@ -13,7 +13,7 @@ app.use(express.static(__dirname));
 // Initialiser le fichier de compteurs s'il n'existe pas
 function initCountersFile() {
     if (!fs.existsSync(COUNTER_FILE)) {
-        fs.writeFileSync(COUNTER_FILE, '0,0', 'utf8');
+        fs.writeFileSync(COUNTER_FILE, '0,0,Personne 1,Personne 2', 'utf8');
     }
 }
 
@@ -21,18 +21,22 @@ function initCountersFile() {
 function readCounters() {
     try {
         const data = fs.readFileSync(COUNTER_FILE, 'utf8');
-        const [person1, person2] = data.split(',').map(Number);
-        return { person1: person1 || 0, person2: person2 || 0 };
+        const parts = data.split(',');
+        const person1 = parseInt(parts[0]) || 0;
+        const person2 = parseInt(parts[1]) || 0;
+        const name1 = parts[2] || 'Personne 1';
+        const name2 = parts[3] || 'Personne 2';
+        return { person1, person2, name1, name2 };
     } catch (error) {
         console.error('Erreur lors de la lecture des compteurs:', error);
-        return { person1: 0, person2: 0 };
+        return { person1: 0, person2: 0, name1: 'Personne 1', name2: 'Personne 2' };
     }
 }
 
 // Écrire les compteurs dans le fichier
-function writeCounters(person1, person2) {
+function writeCounters(person1, person2, name1 = 'Personne 1', name2 = 'Personne 2') {
     try {
-        fs.writeFileSync(COUNTER_FILE, `${person1},${person2}`, 'utf8');
+        fs.writeFileSync(COUNTER_FILE, `${person1},${person2},${name1},${name2}`, 'utf8');
         return true;
     } catch (error) {
         console.error('Erreur lors de l\'écriture des compteurs:', error);
@@ -64,7 +68,7 @@ app.post('/api/increment', (req, res) => {
         counters.person2++;
     }
 
-    if (writeCounters(counters.person1, counters.person2)) {
+    if (writeCounters(counters.person1, counters.person2, counters.name1, counters.name2)) {
         res.json(counters);
     } else {
         res.status(500).json({ error: 'Erreur lors de la sauvegarde' });
@@ -73,10 +77,38 @@ app.post('/api/increment', (req, res) => {
 
 // Réinitialiser les compteurs
 app.post('/api/reset', (req, res) => {
-    if (writeCounters(0, 0)) {
-        res.json({ person1: 0, person2: 0 });
+    const counters = readCounters();
+    if (writeCounters(0, 0, counters.name1, counters.name2)) {
+        res.json({ person1: 0, person2: 0, name1: counters.name1, name2: counters.name2 });
     } else {
         res.status(500).json({ error: 'Erreur lors de la réinitialisation' });
+    }
+});
+
+// Mettre à jour le nom d'une personne
+app.post('/api/update-name', (req, res) => {
+    const { person, name } = req.body;
+
+    if (person !== 1 && person !== 2) {
+        return res.status(400).json({ error: 'Personne invalide' });
+    }
+
+    if (!name || name.trim() === '') {
+        return res.status(400).json({ error: 'Nom invalide' });
+    }
+
+    const counters = readCounters();
+
+    if (person === 1) {
+        counters.name1 = name.trim();
+    } else {
+        counters.name2 = name.trim();
+    }
+
+    if (writeCounters(counters.person1, counters.person2, counters.name1, counters.name2)) {
+        res.json(counters);
+    } else {
+        res.status(500).json({ error: 'Erreur lors de la sauvegarde' });
     }
 });
 

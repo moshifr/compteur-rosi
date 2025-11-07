@@ -7,6 +7,7 @@ Application web simple pour suivre les compteurs de 2 personnes avec stockage pe
 - ✅ Compteur séparé pour 2 personnes
 - ✅ Boutons pour incrémenter chaque compteur
 - ✅ Affichage visuel en grand des compteurs
+- ✅ **Noms personnalisables** : cliquez sur un nom pour le modifier
 - ✅ Stockage persistant dans un fichier `counters.txt`
 - ✅ Interface moderne et responsive
 - ✅ Animation lors de l'incrémentation
@@ -33,6 +34,8 @@ http://localhost:3000
 
 3. Cliquer sur les boutons "➕ Ajouter" pour incrémenter les compteurs
 
+4. Cliquer sur un nom (ex: "Personne 1") pour le personnaliser
+
 ## Mode développement
 
 Pour démarrer en mode développement avec rechargement automatique :
@@ -42,12 +45,12 @@ npm run dev
 
 ## Stockage
 
-Les compteurs sont stockés dans le fichier `counters.txt` au format :
+Les compteurs et noms sont stockés dans le fichier `counters.txt` au format :
 ```
-person1,person2
+counter1,counter2,name1,name2
 ```
 
-Exemple : `5,3` signifie que la personne 1 a un compteur de 5 et la personne 2 un compteur de 3.
+Exemple : `5,3,Alice,Bob` signifie qu'Alice a un compteur de 5 et Bob un compteur de 3.
 
 ## Technologies utilisées
 
