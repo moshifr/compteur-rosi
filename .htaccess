@@ -1,0 +1,48 @@
+# Configuration Apache pour le reverse proxy vers Node.js
+
+# Activer le module de réécriture
+RewriteEngine On
+
+# Ne pas proxy les fichiers statiques qui existent déjà
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Proxy toutes les requêtes vers le serveur Node.js sur le port 3000
+RewriteRule ^(.*)$ http://localhost:3000/$1 [P,L]
+
+# Configuration pour les requêtes WebSocket (optionnel pour le futur)
+# RewriteCond %{HTTP:Upgrade} =websocket [NC]
+# RewriteRule /(.*)           ws://localhost:3000/$1 [P,L]
+
+# Configuration pour améliorer les performances
+<IfModule mod_headers.c>
+    # Activer la compression
+    Header append Vary: Accept-Encoding
+</IfModule>
+
+# Désactiver l'affichage des répertoires
+Options -Indexes
+
+# Protéger les fichiers sensibles
+<FilesMatch "\.(txt|json|md)$">
+    <IfModule mod_authz_core.c>
+        # Pour Apache 2.4
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        # Pour Apache 2.2
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Autoriser l'accès aux fichiers HTML et ressources statiques
+<FilesMatch "\.(html|css|js|png|jpg|jpeg|gif|ico|svg)$">
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Allow from all
+    </IfModule>
+</FilesMatch>
